@@ -17,4 +17,5 @@ Steps: 15, Sampler: DPM++ 2M Karras, CFG scale: 7, Seed: 2592017842, Size: 512x1
 
 - Don't use "Euler a" Sampler
 - Don't use above Options
+- Don't use Batch size (!= 1)
 - Don't use GTX16X0 or lower GPU
