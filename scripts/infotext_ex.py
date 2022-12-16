@@ -7,6 +7,7 @@ import gradio as gr
 
 import modules.scripts as scripts
 import modules.sd_vae as sd_vae
+import modules.devices
 from modules import shared, processing, generation_parameters_copypaste
 
 def create_infotext_ex(p, all_prompts, all_seeds, all_subseeds, comments, iteration=0, position_in_batch=0):
@@ -31,19 +32,31 @@ def create_infotext_ex(p, all_prompts, all_seeds, all_subseeds, comments, iterat
             pathlib.Path(hyper_sha256_path).write_text(calc_hash('sha256', shared.loaded_hypernetwork.filename))
         exs['Hypernet sha256'] = pathlib.Path(hyper_sha256_path).read_text()[:16]
 
-    try:
-        import torch
-        exs['GPU'] = torch.cuda.get_device_name()
-    except:
-        pass
-
+    # 同一の生成が出来ない条件の列挙
     options = []
+    if p.sampler_name == 'Euler a':
+        options.append('euler_a')
     if shared.cmd_opts.xformers:
         options.append('xformers')
     if shared.cmd_opts.lowvram:
         options.append('lowvram')
     if shared.cmd_opts.medvram:
         options.append('medvram')
+    if p.batch_size > 1:
+        options.append('batch_size')
+    try:
+        import torch
+        gpu = torch.cuda.get_device_name()
+        # 再現性のある出力が出来ない型番
+        if gpu.find('GTX 16') != -1:
+            options.append('gtx_16x0')
+    except:
+        pass
+    try:
+        if get_optimal_device() == 'cpu':
+            options.append('cpu')
+    except:
+        pass
     if options:
         exs['Options'] = " ".join(options)
 
